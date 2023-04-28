@@ -40,6 +40,9 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <urdf/model.h>
 
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <tf2_msgs/msg/tf_message.hpp>
+
 #include <chrono>
 #include <map>
 #include <memory>
@@ -90,8 +93,8 @@ protected:
   std::map<std::string, SegmentPair> segments_;
   std::map<std::string, SegmentPair> segments_fixed_;
   std::unique_ptr<urdf::Model> model_;
-  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-  std::unique_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
+  rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr local_tf_broadcaster_;
+  rclcpp::Publisher<tf2_msgs::msg::TFMessage>::SharedPtr local_static_broadcaster_;
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr description_pub_;
   std::chrono::milliseconds publish_interval_ms_;
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;

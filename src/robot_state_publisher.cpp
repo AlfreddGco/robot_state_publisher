@@ -132,8 +132,10 @@ RobotStatePublisher::RobotStatePublisher(const rclcpp::NodeOptions & options)
   // ignore_timestamp_ == true, joint_state messages are accepted, no matter their timestamp
   ignore_timestamp_ = this->declare_parameter("ignore_timestamp", false);
 
-  tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
-  static_tf_broadcaster_ = std::make_unique<tf2_ros::StaticTransformBroadcaster>(this);
+  local_tf_broadcaster_ = this->create_publisher<tf2_msgs::msg::TFMessage>(
+      "/robot_state_publisher/tf", 10);
+  local_static_broadcaster_ = this->create_publisher<tf2_msgs::msg::TFMessage>(
+      "/robot_state_publisher/tf_static", 10);
 
   description_pub_ = this->create_publisher<std_msgs::msg::String>(
     "robot_description",
@@ -252,7 +254,10 @@ void RobotStatePublisher::publishTransforms(
       tf_transforms.push_back(tf_transform);
     }
   }
-  tf_broadcaster_->sendTransform(tf_transforms);
+
+  tf2_msgs::msg::TFMessage message;
+  message.transforms = tf_transforms;
+  local_tf_broadcaster_->publish(message);
 }
 
 // publish fixed transforms
@@ -276,10 +281,13 @@ void RobotStatePublisher::publishFixedTransforms()
       seg.second.tip;
     tf_transforms.push_back(tf_transform);
   }
+
+  tf2_msgs::msg::TFMessage message;
+  message.transforms = tf_transforms;
   if (use_tf_static_) {
-    static_tf_broadcaster_->sendTransform(tf_transforms);
+    local_static_broadcaster_->publish(message);
   } else {
-    tf_broadcaster_->sendTransform(tf_transforms);
+    local_tf_broadcaster_->publish(message);
   }
 }
 
